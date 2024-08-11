@@ -27,9 +27,7 @@ app.use(setHeader);
 app.options('*', cors());
 app.use(cors({
  origin: '*',
- methods: '*', // Allow all HTTP methods
- allowedHeaders: '*', // Allow all headers
- exposedHeaders: '*', // Expose all headers to the client
+ credentials: true
 }));
 
 
