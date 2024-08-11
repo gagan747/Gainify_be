@@ -18,6 +18,10 @@ app.use(express.json()); // Middleware to parse JSON bodies
 
 app.use(cors());
 
+app.use('/',(req,res, next)=>{
+ res.status(200).json({ message: 'Server is healthy...' });
+})
+
 const generateToken = (userId) => {
  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '100h' });
 };
