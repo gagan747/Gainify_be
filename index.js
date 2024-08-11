@@ -17,7 +17,7 @@ app.use(express.json()); // Middleware to parse JSON bodies
 
 // Use CORS middleware
 app.use(cors({
- origin: 'https://gainify.vercel.app', // Specify the exact origin
+ origin: ['https://gainify.vercel.app', 'http://localhost:3000'], // Specify the exact origin
  methods: ['GET', 'POST', 'PUT', 'DELETE'],
  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token'],
  exposedHeaders: ['x-auth-token'],
@@ -67,7 +67,10 @@ app.post('/api/login', validateLogin, async (req, res) => {
 
   if (user && await bcrypt.compare(password, user.password)) {
    const token = generateToken(user._id);
-   res.status(200).json({ message: 'Login successful', token });
+   setTimeout(()=>{
+    res.status(200).json({ message: 'Login successful', token });
+   },5000)
+   //res.status(200).json({ message: 'Login successful', token });
   } else {
    res.status(401).json({ message: 'Invalid credentials' });
   }
@@ -88,3 +91,11 @@ app.listen(PORT, async () => {
  console.log('Db Connected Successfully');
  console.log(`Server is running on http://localhost:${PORT}`);
 });
+
+process.on('uncaughtException',(err)=>{
+ console.log(err)
+})
+
+process.on('unhandledRejection', (err) => {
+ console.log(err)
+})
