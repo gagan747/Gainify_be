@@ -9,15 +9,22 @@ import jwt from 'jsonwebtoken';
 import { validateSignup, validateLogin } from './middlewares/authPayloadValidation.js'; // Import validation middleware
 import authorizeUser from './middlewares/authorization.js';
 
+function setHeader(req, res, next) {
+ res.header('Access-Control-Allow-Origin', '*');
+ res.header('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE');
+ res.header('Access-Control-Allow-Headers', 'Content-Type, x-auth-token');
+ res.header('Access-Control-Expose-Headers', 'x-auth-token');
+ next();
+}
+
 dotenv.config(); // Load environment variables from .env
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(express.json()); // Middleware to parse JSON bodies
-
+app.use(setHeader);
 app.options('*', cors());
-
 app.use(cors({
  origin: '*',
  methods: '*', // Allow all HTTP methods
