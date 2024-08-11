@@ -1,4 +1,3 @@
-// server.js
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -6,16 +5,8 @@ import dbConnect from './dbConnect.js';
 import User from './models/User.js';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { validateSignup, validateLogin } from './middlewares/authPayloadValidation.js'; // Import validation middleware
+import { validateSignup, validateLogin } from './middlewares/authPayloadValidation.js';
 import authorizeUser from './middlewares/authorization.js';
-
-function setHeader(req, res, next) {
- res.header('Access-Control-Allow-Origin', '*');
- res.header('Access-Control-Allow-Methods', 'POST, GET, PUT, DELETE');
- res.header('Access-Control-Allow-Headers', 'Content-Type, x-auth-token');
- res.header('Access-Control-Expose-Headers', 'x-auth-token');
- next();
-}
 
 dotenv.config(); // Load environment variables from .env
 
@@ -23,19 +14,24 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 app.use(express.json()); // Middleware to parse JSON bodies
-app.use(setHeader);
-app.options('*', cors());
+
+// Use CORS middleware
 app.use(cors({
- origin: '*',
- credentials: true
+ origin: 'https://gainify.vercel.app', // Specify the exact origin
+ methods: ['GET', 'POST', 'PUT', 'DELETE'],
+ allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token'],
+ exposedHeaders: ['x-auth-token'],
+ credentials: true // Allow credentials if needed
 }));
 
+app.options('*', cors()); // Handle preflight requests
 
-
-app.use('/server-health',(req,res, next)=>{
+// Health check route
+app.use('/server-health', (req, res, next) => {
  res.status(200).json({ message: 'Server is healthy...' });
-})
+});
 
+// Generate JWT token
 const generateToken = (userId) => {
  return jwt.sign({ id: userId }, process.env.JWT_SECRET, { expiresIn: '100h' });
 };
@@ -45,19 +41,13 @@ app.post('/api/signup', validateSignup, async (req, res) => {
  const { email, password, fullName } = req.body;
 
  try {
-  // Check if user already exists
   const existingUser = await User.findOne({ email });
   if (existingUser) {
    return res.status(400).json({ message: 'User already exists!!' });
   }
 
-  // Hash the password
   const hashedPassword = await bcrypt.hash(password, 10);
-
-  // Create new user
   const newUser = await User.create({ email, password: hashedPassword, fullName });
-
-  // Generate JWT token
   const token = generateToken(newUser._id);
 
   res.status(201).json({ message: 'User created successfully!!', token });
@@ -73,12 +63,9 @@ app.post('/api/login', validateLogin, async (req, res) => {
 
  try {
   const user = await User.findOne({ email });
-
-  if(!user)
-   return res.status(400).json({ message: 'User not Exists!!' });
+  if (!user) return res.status(400).json({ message: 'User not Exists!!' });
 
   if (user && await bcrypt.compare(password, user.password)) {
-   // Generate JWT token
    const token = generateToken(user._id);
    res.status(200).json({ message: 'Login successful', token });
   } else {
@@ -90,9 +77,11 @@ app.post('/api/login', validateLogin, async (req, res) => {
  }
 });
 
-app.get('/api/details', authorizeUser, async(req, res, next) => {
- res.status(200).json({userDetails: req.user})
-})
+// Protected route
+app.get('/api/details', authorizeUser, async (req, res, next) => {
+ res.status(200).json({ userDetails: req.user });
+});
+
 // Start the server
 app.listen(PORT, async () => {
  await dbConnect();
