@@ -18,7 +18,7 @@ app.use(express.json()); // Middleware to parse JSON bodies
 
 app.use(cors());
 
-app.use('/',(req,res, next)=>{
+app.use('/server-health',(req,res, next)=>{
  res.status(200).json({ message: 'Server is healthy...' });
 })
 
