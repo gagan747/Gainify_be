@@ -76,9 +76,7 @@ app.post('/api/login', validateLogin, async (req, res) => {
  }
 });
 
-app.use(authorizeUser);
-
-app.get('/api/details', async(req, res, next) => {
+app.get('/api/details', authorizeUser, async(req, res, next) => {
  res.status(200).json({userDetails: req.user})
 })
 // Start the server
